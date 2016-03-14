@@ -20,7 +20,7 @@
 // express and approved by Intel in writing.
 
 import * as fp from 'intel-fp';
-import * as math from 'intel-math/dist/math';
+import * as math from 'intel-math';
 import _ from 'intel-lodash-mixins';
 
 var errorCollection = {errors: []};
