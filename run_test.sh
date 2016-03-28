@@ -13,6 +13,7 @@ do
     nvm use $node_version
     rm -rf node_modules
     npm i
-    npm t
+    npm run cover -- --reporter=cobertura
+    mv ./coverage/cobertura-coverage.xml ../coverage
     mv pdsh-parser-results*.xml ../results
 done
