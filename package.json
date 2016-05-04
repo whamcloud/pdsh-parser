@@ -1,6 +1,6 @@
 {
   "name": "intel-pdsh-parser",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "PDSH module for parsing pdsh queries",
   "main": "dist/source/index.js",
   "scripts": {
