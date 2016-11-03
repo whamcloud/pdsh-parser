@@ -1,3 +1,5 @@
+// @flow
+
 //
 // INTEL CONFIDENTIAL
 //
@@ -20,17 +22,24 @@
 // express and approved by Intel in writing.
 
 import * as fp from 'intel-fp';
+import * as obj from 'intel-obj';
 import * as math from 'intel-math';
-import _ from 'intel-lodash-mixins';
 
-var errorCollection = {errors: []};
-var expansionCollection = {expansion: [], sections: [], expansionHash: {}};
-var hostnameCache = {};
-var duplicates = [];
-var validRangeRegex = /^[0-9]+(?:-[0-9]+)?$/;
-var expressionRegex = /(\[.*?\])/g;
+let errorCollection = {
+  errors: []
+};
 
-var constants = Object.freeze({
+let expansionCollection = {
+  expansion: [],
+  sections: [],
+  expansionHash: {}
+};
+let hostnameCache = {};
+let duplicates = [];
+const validRangeRegex = /^[0-9]+(?:-[0-9]+)?$/;
+const expressionRegex = /(\[.*?\])/g;
+
+const constants = Object.freeze({
   OPEN_BRACE: '[',
   CLOSING_BRACE: ']',
   TOKEN_TO_REPLACE: '%s',
@@ -54,14 +63,18 @@ const isFalse = fp.flow(fp.eq(false), fp.always);
  * @param {String} expression The expression must be trimmed of white space.
  * @return {Array}
  */
-export default (expression) => {
-  const handleEmptyExpression = fp.flow(fp.always(constants.EXPRESSION_EMPTY), addErrorObject);
+export default (expression:string) => {
   initialize();
 
-  fp.cond(
-    [isEmpty, fp.always(handleEmptyExpression)],
-    [fp.True, fp.always(parseExpression)]
-  )(expression)(expression, expansionCollection, errorCollection);
+  switch (isEmpty(expression)) {
+  case true:
+    addErrorObject(constants.EXPRESSION_EMPTY);
+    break;
+  case false:
+    parseExpression(expression);
+    break;
+
+  }
 
   return (errorCollection.errors.length > 0) ? errorCollection : expansionCollection;
 };
@@ -87,10 +100,8 @@ function parseExpression (expression) {
   const notAboveCap = isNotAboveCap(isValid, allExpressions);
   const validAndNotAboveCap = fp.and([isTrue(isValid), isTrue(notAboveCap)]);
 
-  fp.cond(
-    [validAndNotAboveCap, parseExpressionIntoGroups],
-    [fp.True, fp.noop]
-  )(allExpressions);
+  if (validAndNotAboveCap(allExpressions))
+    parseExpressionIntoGroups(allExpressions);
 }
 
 /**
@@ -98,10 +109,13 @@ function parseExpression (expression) {
  * @param {Array} allExpressions Array of expressions
  */
 function parseExpressionIntoGroups (allExpressions) {
-  const expandExpressions = fp.flow(tokenize, expandComponents);
+  const expandExpressions = fp.flow(
+    tokenize,
+    expandComponents
+  );
   const expansionGroups = allExpressions
     .reduce(combineSimilarExpressions, [])
-    .map(expandExpressions)
+    .map(x => expandExpressions(x))
     .reduce((prev, curGroup) => {
       prev.expansion[curGroup.expression] = curGroup.expansion;
       prev.sections[curGroup.expression] = curGroup.sections;
@@ -123,7 +137,8 @@ function parseExpressionIntoGroups (allExpressions) {
 function processExpandedGroups (expansionGroups) {
   // Are there any duplicates? If so, add an error indicating which item is duplicated and from
   // which expression.
-  const expandedExpressions = _.flatten(_.values(expansionGroups.expansion));
+
+  const expandedExpressions = fp.unwrap(obj.values(expansionGroups.expansion));
 
   // If a dup was found, locate which expression it came from.
   fp.cond(
@@ -161,7 +176,7 @@ function retrieveDupExpressionsAndAddErrorMessage (expansionGroups, expandedExpr
 function identifyDuplicateExpression (dupHostname, expansionGroups, matchingExpression) {
   return (match, curExpression) => {
     if (match === '' && (matchingExpression == null || curExpression !== matchingExpression) &&
-      _.contains(expansionGroups[curExpression], dupHostname))
+      expansionGroups[curExpression].find(x => x === dupHostname))
       return curExpression;
     else
       return match;
@@ -175,7 +190,7 @@ function identifyDuplicateExpression (dupHostname, expansionGroups, matchingExpr
  */
 function updateExpansionCollection (expansionGroups, expandedExpressions) {
   expansionCollection.expansion = expandedExpressions;
-  expansionCollection.sections = _.flatten(_.values(expansionGroups.sections));
+  expansionCollection.sections = fp.unwrap(obj.values(expansionGroups.sections));
   expansionCollection.expansionHash = hostnameCache;
 }
 
@@ -215,8 +230,8 @@ function isExpressionValid (expression) {
  * @returns {Boolean}
  */
 function isNotAboveCap (isValid, allExpressions) {
-  var notAboveCap = false;
-  var totalEntries = 0;
+  let notAboveCap = false;
+  let totalEntries = 0;
 
   if (isValid) {
     totalEntries = getTotalEntries(allExpressions);
@@ -239,8 +254,8 @@ function isNotAboveCap (isValid, allExpressions) {
  * @return {Number}
  */
 function getTotalEntries (allExpressions) {
-  var ranges = [];
-  var m;
+  const ranges = [];
+  let m;
 
   return allExpressions.reduce((prev, currentExpression) => {
     while ((m = expressionRegex.exec(currentExpression)) != null) {
@@ -273,15 +288,14 @@ function getTotalEntries (allExpressions) {
  * @returns {*}
  */
 function combineSimilarExpressions (prevExpressions, curExpression) {
-  const isStringType = fp.flow(x => typeof x, fp.eq('string'));
-  prevExpressions = fp.cond(
-    [isStringType, fp.arrayWrap],
-    [fp.True, fp.identity]
-  )(prevExpressions);
+  prevExpressions = typeof prevExpressions === 'string' ? [prevExpressions] : prevExpressions;
 
-  const updatedExpressions = prevExpressions.map(compareExpressions(curExpression));
+  const updatedExpressions = prevExpressions
+    .map(
+      compareExpressions(curExpression)
+    );
 
-  if (_.difference(updatedExpressions, prevExpressions).length === 0)
+  if (fp.difference(updatedExpressions, prevExpressions).length === 0)
     updatedExpressions.push(curExpression);
 
   return updatedExpressions;
@@ -304,7 +318,7 @@ function compareExpressions (curExpression) {
    * @param {String} expression The current expression
    * @returns {String} The updated expression if it can be combined; otherwise, it will return the original.
    */
-  return function innerCompareExpressions (expression) {
+  return function innerCompareExpressions (expression:string) {
     const simplifiedPrevExpression = expression.replace(expressionRegex, constants.TOKEN_TO_REPLACE);
     const simplifiedCurrentExpression = curExpression.replace(expressionRegex, constants.TOKEN_TO_REPLACE);
     const isPreviousExpression = fp.flow(fp.eq(simplifiedPrevExpression), fp.always);
@@ -337,7 +351,7 @@ function examineAndCombineRanges (prevExpression, curExpression, simplifiedCurre
   // host[1,2].iml[1-3] and host[5-7].iml[2-3]
 
   return fp.cond(
-    [isLessThan2(_.difference(prevRanges.expanded, curRanges.expanded).length),
+    [isLessThan2(fp.difference(prevRanges.expanded, curRanges.expanded).length),
       fp.always(updateExpressionBasedOnPrevAndCurrentRanges)],
     [fp.True, fp.always(fp.identity)]
   )()(prevExpression, simplifiedCurrentExpression, prevRanges.ranges, curRanges.ranges);
@@ -353,10 +367,10 @@ function examineAndCombineRanges (prevExpression, curExpression, simplifiedCurre
  */
 function updateExpressionBasedOnPrevAndCurrentRanges (prevExpression, simplifiedCurrentExpression, prevRanges,
                                                       curRanges) {
-  var updatedExpression = simplifiedCurrentExpression;
+  let updatedExpression = simplifiedCurrentExpression;
 
-  for (var i = 0; i < prevRanges.length; i += 1) {
-    const updatedExpressionFromPrevRange = _.partial(replaceTokenWithText, updatedExpression);
+  for (let i = 0; i < prevRanges.length; i += 1) {
+    const updatedExpressionFromPrevRange = replaceTokenWithText.bind(null, updatedExpression);
     const isPrevRange = fp.flow(fp.eq(prevRanges[i]), fp.always);
 
     updatedExpression = fp.cond(
@@ -377,10 +391,10 @@ function updateExpressionBasedOnPrevAndCurrentRanges (prevExpression, simplified
  * @param {String} updatedExpression
  * @returns {String}
  */
-function expandExpressionUsingPrevAndCurrentRanges (prevRange, curRange, updatedExpression) {
+function expandExpressionUsingPrevAndCurrentRanges (prevRange:string, curRange:string, updatedExpression:string) {
   const prevRangeNumbers = prevRange.slice(1, -1);
   const curRangeNumbers = curRange.slice(1, -1);
-  const combinedRange = '[' + prevRangeNumbers + ',' + curRangeNumbers + ']';
+  const combinedRange = `[${prevRangeNumbers},${curRangeNumbers}]`;
   return replaceTokenWithText(updatedExpression, combinedRange);
 }
 
@@ -389,22 +403,22 @@ function expandExpressionUsingPrevAndCurrentRanges (prevRange, curRange, updated
  * @param {String} expression
  * @returns {{ranges: Array, expandedRanges: Array}}
  */
-function getExpandedRangesFromRegex (expression) {
-  var m;
-  const ranges = [];
-  const expanded = [];
+function getExpandedRangesFromRegex (expression:string) {
+  let m:string;
+  const ranges:string[] = [];
+  const expanded:string[] = [];
 
   while ((m = expressionRegex.exec(expression)) != null) {
     if (m.index === expressionRegex.lastIndex)
       expressionRegex.lastIndex += 1;
 
-    ranges.push(fp.head(m));
-    expanded.push(expandRangesAsString(fp.head(m)));
+    ranges.push(m[0]);
+    expanded.push(expandRangesAsString(m[0]));
   }
 
   return {
-    ranges: ranges,
-    expanded: expanded
+    ranges,
+    expanded
   };
 }
 
@@ -416,14 +430,17 @@ function getExpandedRangesFromRegex (expression) {
  * @param {Array} components
  * @returns {Object}
  */
-function expandComponents (components) {
+function expandComponents (components:string[]) {
   const ranges = [];
-  const hostname = components.reduce(_.partial(generateHostNameFormat, ranges));
+  const hostname = components.reduce(
+    generateHostNameFormat.bind(null, ranges)
+  );
 
   // Expand the ranges and save them in expandedRanges
-  var expandedRanges = ranges.map(expandRanges);
+  let expandedRanges = ranges.map(expandRanges);
   // Sort the expanded ranges
-  expandedRanges = expandedRanges.map(_.unique);
+  const uniq = fp.uniqBy(fp.identity);
+  expandedRanges = expandedRanges.map(x => uniq(x));
   const rangeGroups = expandedRanges.map(findRangeInList);
 
   return {
@@ -443,12 +460,12 @@ function expandComponents (components) {
  */
 function formatHostnameGroups (rangeGroups, hostnameFormat) {
 
-  var hostnameGroups = [];
+  let hostnameGroups = [];
   const curGroup = rangeGroups.shift();
 
   if (Array.isArray(curGroup) && curGroup.length > 0)
     curGroup.forEach((curRange) => {
-      var rangeString = fp.head(curRange);
+      let rangeString = fp.head(curRange);
       if (curRange.length > 1)
         rangeString += `..${curRange[curRange.length - 1]}`;
 
@@ -479,8 +496,8 @@ function findRangeInList (list) {
     return [];
 
   // Put the first item in the range
-  var curLocation = 0;
-  var ranges = [];
+  let curLocation = 0;
+  let ranges = [];
 
   const range = [list[0]];
   const length = list.length;
@@ -511,15 +528,20 @@ function findRangeInList (list) {
  * @param {String} current
  * @returns {String}
  */
-function generateHostNameFormat (ranges, prev, current) {
-  const newVal = flattenArrayOfValues(prev, current);
+function generateHostNameFormat (ranges, prev:string, current:string) {
+  const newVal = prev.concat(current);
   const filteredRanges = [prev, current].filter(range);
 
   // Concat the filtered ranges onto ranges
   [].push.apply(ranges, filteredRanges);
   // replace the ranges in newVal with a token
-  const replaceTextWithTokenS = _.partial(replaceTextWithToken, constants.TOKEN_TO_REPLACE);
-  return filteredRanges.reduce(replaceTextWithTokenS, newVal);
+  return filteredRanges.reduce(
+    replaceTextWithToken.bind(
+      null,
+      constants.TOKEN_TO_REPLACE
+    ),
+    newVal
+  );
 }
 
 /**
@@ -529,7 +551,7 @@ function generateHostNameFormat (ranges, prev, current) {
  * @param {String} target
  * @returns {String}
  */
-function replaceTextWithToken (token, source, target) {
+function replaceTextWithToken (token:string, source:string, target:string) {
   return source.replace(target, token);
 }
 
@@ -539,7 +561,7 @@ function replaceTextWithToken (token, source, target) {
  * @param {String}token
  * @returns {String}
  */
-function replaceTokenWithText (source, token) {
+function replaceTokenWithText (source:string, token:string) {
   return source.replace(constants.TOKEN_TO_REPLACE, token);
 }
 
@@ -573,7 +595,9 @@ function formatString (hostname, ranges, id) {
  */
 function formatCurrentRange (serverList, hostname, ranges, curArrayId) {
   const curArray = ranges[curArrayId];
-  curArray.forEach(_.partial(computeString, serverList, hostname, ranges, curArrayId));
+  curArray.forEach(
+    x => computeString(serverList, hostname, ranges, curArrayId, x)
+  );
 }
 
 /**
@@ -656,12 +680,13 @@ function addDuplicate (hostname) {
  * @param {String} rangeComponent
  * @returns {Array}
  */
-function expandRanges (rangeComponent) {
+function expandRanges (rangeComponent:string) {
   // Sort the range string
   const sortedRangeComponent = sortRangeString(rangeComponent);
 
   // Remove the beginning and ending brackets
-  return sortedRangeComponent.slice(1,-1)
+  return sortedRangeComponent
+    .slice(1,-1)
     .split(',')
     .map(parseItem)
     .reduce(flattenArrayOfValues);
@@ -675,13 +700,13 @@ function expandRanges (rangeComponent) {
  * @param {String} rangeComponent
  * @returns {Array}
  */
-function sortRangeString (rangeComponent) {
+function sortRangeString (rangeComponent:string) {
   const minMaxComponents = getMinMaxComponents(rangeComponent);
 
   minMaxComponents.sort(compare);
 
   // reduce the sorted array back to a string
-  var sortedRangeString = minMaxComponents.reduce((prev, current) => {
+  let sortedRangeString = minMaxComponents.reduce((prev, current) => {
     const rangeString = (current.min === current.max) ? current.minPrefix + current.min :
       current.minPrefix + current.min + '-' + current.maxPrefix + current.max;
     const separator = (prev === '') ? '' : ',';
@@ -711,14 +736,14 @@ function sortRangeString (rangeComponent) {
  * @param {String} rangeComponent
  * @returns {Array}
  */
-function getMinMaxComponents (rangeComponent) {
+function getMinMaxComponents (rangeComponent:string) {
   const componentToParse = (rangeComponent[0] === '[') ? rangeComponent.slice(1, -1) : rangeComponent;
   const components = componentToParse.split(',');
 
   // return an array of min/max items
   return components.map((component) => {
     const rangeComponents = component.split('-');
-    var min, max;
+    let min, max;
     if (+rangeComponents[0] > +rangeComponents[rangeComponents.length - 1]) {
       min = rangeComponents[rangeComponents.length - 1];
       max = rangeComponents[0];
@@ -755,20 +780,18 @@ function expandRangesAsString (rangeComponent) {
  * @param {String} item
  * @returns {Array}
  */
-function parseItem (item) {
+function parseItem (item:string) {
   const isSanitized = isValidRange(item);
   const range = item.split('-');
   const isLength2 = fp.flow(x => x.length, fp.eq(2));
   const isSanitizedWithLengthOf2 = fp.and([isLength2, isTrue(isSanitized)]);
 
-  var rangeValues = fp.cond(
-   [isSanitizedWithLengthOf2, generateRange],
-   [fp.True, fp.identity]
-  )(range);
+  const rangeValues = isSanitizedWithLengthOf2(range) ?
+    generateRange(range) :
+    range;
 
-  fp.cond(
-   [isFalse(isSanitized), _.partial(addErrorObject, constants.RANGE_NOT_PROPER_FORMAT)]
-  )();
+  if (!isSanitized)
+    addErrorObject(constants.RANGE_NOT_PROPER_FORMAT);
 
   return rangeValues;
 }
@@ -781,14 +804,10 @@ function parseItem (item) {
  * @param {String} rangeComponent
  * @returns {Number}
  */
-function parseItemIntoTotalLength (rangeComponent) {
-  var isSanitized = isValidRange(rangeComponent);
-
-  return fp.cond(
-    [isTrue(isSanitized), countItemsInRange],
-    [fp.True, _.partial(addErrorObject, constants.RANGE_NOT_PROPER_FORMAT)]
-  )(rangeComponent);
-}
+const parseItemIntoTotalLength =  fp.cond(
+    [isValidRange, countItemsInRange],
+    [fp.True,  () => addErrorObject(constants.RANGE_NOT_PROPER_FORMAT)]
+  );
 
 /**
  * Counts the items in the range component
@@ -805,20 +824,25 @@ function countItemsInRange (rangeComponent) {
 
 /**
  * Generates an array containing all of the numbers specified in the range (inclusive)
- * @param {String} range
+ * @param {Array} range
  * @returns {Array}
  */
-function generateRange (range) {
+function generateRange (range:string[]) {
   // is there a prefix in the range?
-  const prefixBeginning = getPrefix(fp.head(range));
-  const prefixEnding = getPrefix(fp.tail(range));
-  const valid = (fp.head(range).length === fp.tail(range).length && prefixBeginning.length > 0) ||
+  const first = range[0];
+  const last = range[range.length - 1];
+  const prefixBeginning = getPrefix(first);
+  const prefixEnding = getPrefix(last);
+  const valid = (first.length === last.length && prefixBeginning.length > 0) ||
     (prefixBeginning.length === 0 && prefixEnding.length === 0);
 
-  return fp.cond(
-    [isTrue(valid), generatePrefixedRanges],
-    [fp.True, _.partial(addInconsistentDigitsError, errorCollection.errors, constants)]
-  )(range, prefixBeginning) || [];
+  if (valid) {
+    return generatePrefixedRanges(range, prefixBeginning);
+  } else {
+    addInconsistentDigitsError(errorCollection.errors, constants);
+    return [];
+  }
+
 }
 
 /**
@@ -829,9 +853,19 @@ function generateRange (range) {
  * @param {String} prefix
  * @returns {Array}
  */
-function generatePrefixedRanges (range, prefix) {
-  return _.range(range[0], +range[1] + 1)
-    .map(prefixString(prefix, range[0].length));
+function generatePrefixedRanges (range:string[], prefix:string) {
+  const start = +range[0];
+  const end = +range[1] + 1;
+  const out = [];
+
+  for (let i = start; i < end; i++)
+    out.push(i);
+
+
+  return out
+    .map(
+      prefixString(prefix, range[0].length)
+    );
 }
 
 /**
@@ -840,7 +874,7 @@ function generatePrefixedRanges (range, prefix) {
  * @param {Object} constants
  */
 function addInconsistentDigitsError (errors, constants) {
-  if (!_.contains(errors, constants.INCONSISTENT_DIGITS))
+  if (!errors.find(x => x === constants.INCONSISTENT_DIGITS))
     addErrorObject(constants.INCONSISTENT_DIGITS);
 }
 
@@ -851,12 +885,14 @@ function addInconsistentDigitsError (errors, constants) {
  * @param {String} item
  * @returns {string}
  */
-function getPrefix (item) {
+function getPrefix (item:string) {
+  const asNum = +item;
+
   // If the number is 0 (ex. '000') then simply return the item
-  if (+item === 0)
+  if (asNum === 0)
     return item.substring(0, item.length - 1);
 
-  return item.substring(0, item.indexOf(+item.toString()));
+  return item.substring(0, item.indexOf(asNum.toString()));
 }
 
 /**
@@ -877,7 +913,10 @@ function prefixString (prefix, numDigits) {
       return item;
 
     const prefixesToAdd = numDigits - item.length;
-    const prefixToUse = _.times(prefixesToAdd, _.partial(_.identity, 0)).join('');
+    const prefixToUse = fp.times(
+      fp.always(0),
+      prefixesToAdd
+    ).join('');
 
     return prefixToUse + item;
   };
@@ -932,8 +971,11 @@ function addExpressionToExpressionList (expressions, expression) {
  * @returns {Array}
  */
 function lookForMoreExpressionsToSplit (expressions, expression, curLoc, isInsideBraces) {
-  var ruleApplied;
-  const isLocationInsideBraces = fp.flow(fp.curry(2, isInsideBraces)(expression), fp.always);
+  let ruleApplied;
+  const isLocationInsideBraces = fp.flow(
+    x => isInsideBraces(expression, x),
+    fp.always
+  );
 
   while (curLoc !== -1 && !ruleApplied) {
     // Apply the rule at the current comma location
@@ -990,7 +1032,10 @@ function isInsideBraces (expression, loc) {
   const leftSide = expression.substr(0, loc);
   const rightSide = expression.substr(loc + 1);
 
-  return hasBrace(constants.LAST_INDEX_OF, leftSide) && hasBrace(constants.INDEX_OF, rightSide);
+  const lastIndexOf = ''.lastIndexOf;
+  const indexOf = ''.indexOf;
+
+  return hasBrace(lastIndexOf.bind(leftSide)) && hasBrace(indexOf.bind(rightSide));
 }
 
 /**
@@ -999,13 +1044,12 @@ function isInsideBraces (expression, loc) {
  * distance, or is there no closing brace to the left at all?
  * 2. hasRightBrace - Is there a brace to the right of this location in which a closing brace is NOT closer in
  * distance, or is there no open brace to the right at all?
- * @param {String} indexMethod
- * @param {String} sideString The string in which a search will be performed for the brace.
+ * @param {fn} indexOf | lastIndexOf bound to string
  * @returns {Boolean}
  */
-function hasBrace (indexMethod, sideString) {
-  const closestClosingBrace = sideString[indexMethod](constants.CLOSING_BRACE);
-  const closestOpeningBrace = sideString[indexMethod](constants.OPEN_BRACE);
+function hasBrace (fn:(x:string) => number) {
+  const closestClosingBrace = fn(constants.CLOSING_BRACE);
+  const closestOpeningBrace = fn(constants.OPEN_BRACE);
 
   return ((closestClosingBrace === -1 && closestOpeningBrace === -1) ||
     (closestOpeningBrace < closestClosingBrace));
@@ -1047,7 +1091,7 @@ function proceedWithTokenize (tokens, expression) {
  */
 function processNonRanges (tokens, expression) {
   fp.cond(
-    [_.partial(rangeExists, expression), fp.always(addTokenToList(constants.OPEN_BRACE, 0))],
+    [() => rangeExists(expression), fp.always(addTokenToList(constants.OPEN_BRACE, 0))],
     [fp.True, fp.always(addItemToArray)]
   )()(tokens, expression);
 }
@@ -1058,7 +1102,7 @@ function processNonRanges (tokens, expression) {
  * @param {Number} addToIndex
  * @returns {Function}
  */
-function addTokenToList (key, addToIndex) {
+function addTokenToList (key:string, addToIndex:number) {
   return function innerAddTokenToList (tokens, expression) {
     // We've hit a range. Create an array of values.
 
@@ -1071,7 +1115,7 @@ function addTokenToList (key, addToIndex) {
 function getIndexArrayOfBraces (expression, brace) {
   const re = (brace === '[') ? /([\[])/g : /([\]])/g;
   const indicies = [];
-  var m;
+  let m;
 
   while ((m = re.exec(expression)) != null) {
     if (m.index === re.lastIndex)
@@ -1099,8 +1143,8 @@ function sum (fn) {
  * Adds an error message to the errors object
  * @param {String} msg
  */
-function addErrorObject (msg) {
-  if (!_.contains(errorCollection.errors, msg))
+function addErrorObject (msg:string) {
+  if (!errorCollection.errors.find(x => x === msg, errorCollection.errors))
     errorCollection.errors.push(msg);
 }
 
@@ -1110,7 +1154,7 @@ function addErrorObject (msg) {
  * @param {Array} current
  * @returns {Array}
  */
-function flattenArrayOfValues (prev, current) {
+function flattenArrayOfValues (prev:string[], current:string[]) {
   return prev.concat(current);
 }
 
@@ -1120,7 +1164,7 @@ function flattenArrayOfValues (prev, current) {
  * @param {Number} curArrayId
  * @returns {Boolean}
  */
-function moreRangesAvailable (ranges, curArrayId) {
+function moreRangesAvailable (ranges, curArrayId:number) {
   return curArrayId + 1 < ranges.length;
 }
 
@@ -1129,7 +1173,7 @@ function moreRangesAvailable (ranges, curArrayId) {
  * @param {String} item
  * @returns {Boolean}
  */
-function isValidRange (item) {
+function isValidRange (item:string) {
   return validRangeRegex.test(item);
 }
 
@@ -1138,7 +1182,7 @@ function isValidRange (item) {
  * @param {String} e The expression
  * @returns {Boolean}
  */
-function rangeExists (e) {
+function rangeExists (e:string) {
   return e.indexOf(constants.OPEN_BRACE) > -1;
 }
 
@@ -1147,6 +1191,6 @@ function rangeExists (e) {
  * @param {String} e The expression passed in
  * @returns {Boolean}
  */
-function range (e) {
+function range (e:string) {
   return e[0] === constants.OPEN_BRACE;
 }

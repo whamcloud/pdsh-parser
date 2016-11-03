@@ -2,14 +2,14 @@
 
 'use strict';
 
-var Jasmine = require('jasmine');
-var jasmine = new Jasmine();
+const Jasmine = require('jasmine');
+const jasmine = new Jasmine();
 require('intel-jasmine-n-matchers');
 
 if (process.env.RUNNER === 'CI') {
-  var jasmineJUnitReporter = require('intel-jasmine-junit-reporter');
+  const jasmineJUnitReporter = require('intel-jasmine-junit-reporter');
 
-  var junitReporter = jasmineJUnitReporter({
+  const junitReporter = jasmineJUnitReporter({
     specTimer: new jasmine.jasmine.Timer(),
     JUnitReportSavePath: process.env.SAVE_PATH || './',
     JUnitReportFilePrefix: process.env.FILE_PREFIX || 'pdsh-parser-results-' +  process.version,
