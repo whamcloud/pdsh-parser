@@ -1,19 +1,32 @@
-import {describe, it, expect} from './jasmine';
-import _ from 'intel-lodash-mixins';
-import {curry} from 'intel-fp';
+// @flow
+
+import * as fp from 'intel-fp';
 import parser from '../source/';
 
+import {
+  describe,
+  it,
+  expect
+} from './jasmine';
+
+const range = (start:number, end:number):number[] => {
+  const out = [];
+
+  for (let i = start; i < end; i++)
+    out.push(i);
+
+  return out;
+};
+
 describe('pdsh parser', function () {
-  var nameWithId = curry(2, (name, id) => {
-    return name.replace(/\%s/, id);
-  });
+  const nameWithId = (name:string) => (id:number) => name.replace(/\%s/, id.toString());
 
-  var idInObject = curry(3, (name, obj, id) => {
-    obj[nameWithId(name, id)] = 1;
+  const idInObject = (name:string) => (obj:Object, id:number) => {
+    obj[nameWithId(name)(id)] = 1;
     return obj;
-  });
+  };
 
-  var tests = [
+  const tests = [
     // single item without ranges
     {
       expression: 'hostname1.iml.com',
@@ -119,13 +132,27 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[001-999]',
       expanded: {
-        expansion: _.range(1, 10).map(nameWithId('hostname00%s'))
-          .concat(_.range(10, 100).map(nameWithId('hostname0%s')))
-            .concat(_.range(100, 1000).map(nameWithId('hostname%s'))),
+        expansion: range(1, 10).map(nameWithId('hostname00%s'))
+          .concat(range(10, 100).map(nameWithId('hostname0%s')))
+            .concat(range(100, 1000).map(nameWithId('hostname%s'))),
         sections: ['hostname001..999'],
-        expansionHash: _.chain(_.range(1, 10).reduce(idInObject('hostname00%s'), {}))
-          .merge(_.range(10, 100).reduce(idInObject('hostname0%s'), {}))
-          .merge(_.range(100, 1000).reduce(idInObject('hostname%s'), {})).value()
+        expansionHash: Object.assign(
+          range(1, 10)
+            .reduce(
+              idInObject('hostname00%s'),
+              {}
+            ),
+          range(10, 100)
+            .reduce(
+              idInObject('hostname0%s'),
+              {}
+            ),
+            range(100, 1000)
+              .reduce(
+                idInObject('hostname%s'),
+                {}
+              )
+        )
       }
     },
     // single item with two ranges
@@ -485,10 +512,11 @@ describe('pdsh parser', function () {
   ];
 
   tests.forEach((test) => {
-    it('should return the correct expression ' + test.expression, () => {
-      var result = parser(test.expression);
+    it(`should return the correct expression ${test.expression}`, () => {
+      const result = parser(test.expression);
 
-      expect(result).toEqual(test.expanded);
+      expect(result)
+        .toEqual(test.expanded);
     });
   });
 });
