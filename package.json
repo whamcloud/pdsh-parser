@@ -1,5 +1,5 @@
 {
-  "name": "intel-pdsh-parser",
+  "name": "@mfl/pdsh-parser",
   "version": "1.0.3",
   "description": "PDSH module for parsing pdsh queries",
   "main": "dist/source/index.js",
@@ -18,7 +18,7 @@
     "instrument": false
   },
   "publishConfig": {
-    "registry": "https://ubit-artifactory-or.intel.com/artifactory/api/npm/iml-npm-local"
+    "access": "public"
   },
   "pre-commit": [
     "flow",
@@ -28,9 +28,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.intel.com:IML/pdsh-parser.git"
+    "url": "git@github.intel.com:MFL/pdsh-parser.git"
   },
-  "author": "IML Team",
+  "author": "MFL Team",
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "6.18.0",
@@ -45,16 +45,16 @@
     "eslint-plugin-import": "2.0.1",
     "flow-bin": "0.34.0",
     "flow-coverage-report": "0.1.0",
-    "intel-flow-jasmine": "1.5.0",
-    "intel-jasmine-junit-reporter": "1.0.0",
-    "intel-jasmine-n-matchers": "2.1.1",
+    "@mfl/flow-jasmine": "1.5.0",
+    "@mfl/jasmine-junit-reporter": "1.0.0",
+    "@mfl/jasmine-n-matchers": "2.1.1",
     "jasmine": "2.5.2",
     "nyc": "8.4.0",
     "pre-commit": "1.1.3"
   },
   "dependencies": {
-    "intel-fp": "7.0.0",
-    "intel-math": "5.3.1",
-    "intel-obj": "6.0.1"
+    "@mfl/fp": "7.0.0",
+    "@mfl/math": "5.3.1",
+    "@mfl/obj": "6.0.1"
   }
 }
