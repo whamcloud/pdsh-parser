@@ -1,15 +1,10 @@
 // @flow
 
-import * as fp from 'intel-fp';
 import parser from '../source/';
 
-import {
-  describe,
-  it,
-  expect
-} from './jasmine';
+import { describe, it, expect } from './jasmine';
 
-const range = (start:number, end:number):number[] => {
+const range = (start: number, end: number): number[] => {
   const out = [];
 
   for (let i = start; i < end; i++)
@@ -18,10 +13,11 @@ const range = (start:number, end:number):number[] => {
   return out;
 };
 
-describe('pdsh parser', function () {
-  const nameWithId = (name:string) => (id:number) => name.replace(/\%s/, id.toString());
+describe('pdsh parser', function() {
+  const nameWithId = (name: string) => (id: number) =>
+    name.replace(/\%s/, id.toString());
 
-  const idInObject = (name:string) => (obj:Object, id:number) => {
+  const idInObject = (name: string) => (obj: Object, id: number) => {
     obj[nameWithId(name)(id)] = 1;
     return obj;
   };
@@ -33,7 +29,7 @@ describe('pdsh parser', function () {
       expanded: {
         expansion: ['hostname1.iml.com'],
         sections: ['hostname1.iml.com'],
-        expansionHash : { 'hostname1.iml.com' : 1 }
+        expansionHash: { 'hostname1.iml.com': 1 }
       }
     },
     // two items without ranges
@@ -66,7 +62,7 @@ describe('pdsh parser', function () {
         expansion: ['hostname6'],
         sections: ['hostname6'],
         expansionHash: {
-          'hostname6': 1
+          hostname6: 1
         }
       }
     },
@@ -76,10 +72,10 @@ describe('pdsh parser', function () {
       expanded: {
         expansion: ['hostname09', 'hostname10', 'hostname11'],
         sections: ['hostname09..11'],
-        expansionHash : {
-          hostname09 : 1,
-          hostname10 : 1,
-          hostname11 : 1
+        expansionHash: {
+          hostname09: 1,
+          hostname10: 1,
+          hostname11: 1
         }
       }
     },
@@ -89,10 +85,10 @@ describe('pdsh parser', function () {
       expanded: {
         expansion: ['hostname009', 'hostname010', 'hostname011'],
         sections: ['hostname009..011'],
-        expansionHash : {
-          hostname009 : 1,
-          hostname010 : 1,
-          hostname011 : 1
+        expansionHash: {
+          hostname009: 1,
+          hostname010: 1,
+          hostname011: 1
         }
       }
     },
@@ -109,12 +105,20 @@ describe('pdsh parser', function () {
         }
       }
     },
-      // multiple items combined into regular and reverse order
+    // multiple items combined into regular and reverse order
     {
       expression: 'hostname[7-5], hostname[8,9], hostname[3,2,1]',
       expanded: {
-        expansion: ['hostname1', 'hostname2', 'hostname3', 'hostname5', 'hostname6', 'hostname7', 'hostname8',
-          'hostname9'],
+        expansion: [
+          'hostname1',
+          'hostname2',
+          'hostname3',
+          'hostname5',
+          'hostname6',
+          'hostname7',
+          'hostname8',
+          'hostname9'
+        ],
         sections: ['hostname1..3', 'hostname5..9'],
         expansionHash: {
           hostname1: 1,
@@ -132,26 +136,15 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[001-999]',
       expanded: {
-        expansion: range(1, 10).map(nameWithId('hostname00%s'))
+        expansion: range(1, 10)
+          .map(nameWithId('hostname00%s'))
           .concat(range(10, 100).map(nameWithId('hostname0%s')))
-            .concat(range(100, 1000).map(nameWithId('hostname%s'))),
+          .concat(range(100, 1000).map(nameWithId('hostname%s'))),
         sections: ['hostname001..999'],
         expansionHash: Object.assign(
-          range(1, 10)
-            .reduce(
-              idInObject('hostname00%s'),
-              {}
-            ),
-          range(10, 100)
-            .reduce(
-              idInObject('hostname0%s'),
-              {}
-            ),
-            range(100, 1000)
-              .reduce(
-                idInObject('hostname%s'),
-                {}
-              )
+          range(1, 10).reduce(idInObject('hostname00%s'), {}),
+          range(10, 100).reduce(idInObject('hostname0%s'), {}),
+          range(100, 1000).reduce(idInObject('hostname%s'), {})
         )
       }
     },
@@ -159,16 +152,22 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[6,7]-[9-11].iml.com',
       expanded: {
-        expansion: ['hostname6-9.iml.com', 'hostname6-10.iml.com', 'hostname6-11.iml.com',
-          'hostname7-9.iml.com', 'hostname7-10.iml.com', 'hostname7-11.iml.com'],
-        sections:  ['hostname6..7-9..11.iml.com'],
-        expansionHash : {
-          'hostname6-9.iml.com' : 1,
-          'hostname6-10.iml.com' : 1,
-          'hostname6-11.iml.com' : 1,
-          'hostname7-9.iml.com' : 1,
-          'hostname7-10.iml.com' : 1,
-          'hostname7-11.iml.com' : 1
+        expansion: [
+          'hostname6-9.iml.com',
+          'hostname6-10.iml.com',
+          'hostname6-11.iml.com',
+          'hostname7-9.iml.com',
+          'hostname7-10.iml.com',
+          'hostname7-11.iml.com'
+        ],
+        sections: ['hostname6..7-9..11.iml.com'],
+        expansionHash: {
+          'hostname6-9.iml.com': 1,
+          'hostname6-10.iml.com': 1,
+          'hostname6-11.iml.com': 1,
+          'hostname7-9.iml.com': 1,
+          'hostname7-10.iml.com': 1,
+          'hostname7-11.iml.com': 1
         }
       }
     },
@@ -176,13 +175,18 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[7,9-11].iml.com',
       expanded: {
-        expansion: ['hostname7.iml.com', 'hostname9.iml.com', 'hostname10.iml.com', 'hostname11.iml.com'],
+        expansion: [
+          'hostname7.iml.com',
+          'hostname9.iml.com',
+          'hostname10.iml.com',
+          'hostname11.iml.com'
+        ],
         sections: ['hostname7.iml.com', 'hostname9..11.iml.com'],
-        expansionHash : {
-          'hostname7.iml.com' : 1,
-          'hostname9.iml.com' : 1,
-          'hostname10.iml.com' : 1,
-          'hostname11.iml.com' : 1
+        expansionHash: {
+          'hostname7.iml.com': 1,
+          'hostname9.iml.com': 1,
+          'hostname10.iml.com': 1,
+          'hostname11.iml.com': 1
         }
       }
     },
@@ -191,23 +195,38 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[2,6,7].iml.com,hostname[10,11-12,2-4,5].iml.com, hostname[15-17].iml.com',
       expanded: {
-        expansion: [ 'hostname2.iml.com', 'hostname3.iml.com', 'hostname4.iml.com', 'hostname5.iml.com',
-          'hostname6.iml.com', 'hostname7.iml.com', 'hostname10.iml.com', 'hostname11.iml.com', 'hostname12.iml.com',
-          'hostname15.iml.com', 'hostname16.iml.com', 'hostname17.iml.com' ],
-        sections: [ 'hostname2..7.iml.com', 'hostname10..12.iml.com', 'hostname15..17.iml.com' ],
-        expansionHash : {
-          'hostname2.iml.com' : 1,
-          'hostname6.iml.com' : 1,
-          'hostname7.iml.com' : 1,
-          'hostname10.iml.com' : 1,
-          'hostname11.iml.com' : 1,
-          'hostname12.iml.com' : 1,
-          'hostname3.iml.com' : 1,
-          'hostname4.iml.com' : 1,
-          'hostname5.iml.com' : 1,
-          'hostname15.iml.com' : 1,
-          'hostname16.iml.com' : 1,
-          'hostname17.iml.com' : 1
+        expansion: [
+          'hostname2.iml.com',
+          'hostname3.iml.com',
+          'hostname4.iml.com',
+          'hostname5.iml.com',
+          'hostname6.iml.com',
+          'hostname7.iml.com',
+          'hostname10.iml.com',
+          'hostname11.iml.com',
+          'hostname12.iml.com',
+          'hostname15.iml.com',
+          'hostname16.iml.com',
+          'hostname17.iml.com'
+        ],
+        sections: [
+          'hostname2..7.iml.com',
+          'hostname10..12.iml.com',
+          'hostname15..17.iml.com'
+        ],
+        expansionHash: {
+          'hostname2.iml.com': 1,
+          'hostname6.iml.com': 1,
+          'hostname7.iml.com': 1,
+          'hostname10.iml.com': 1,
+          'hostname11.iml.com': 1,
+          'hostname12.iml.com': 1,
+          'hostname3.iml.com': 1,
+          'hostname4.iml.com': 1,
+          'hostname5.iml.com': 1,
+          'hostname15.iml.com': 1,
+          'hostname16.iml.com': 1,
+          'hostname17.iml.com': 1
         }
       }
     },
@@ -216,27 +235,37 @@ describe('pdsh parser', function () {
       expression: 'hostname[1,2-3].iml[2,3].com,hostname[3,4,5].iml[2,3].com,hostname[5-6,7].iml[2,3].com',
       expanded: {
         expansion: [
-          'hostname1.iml2.com', 'hostname1.iml3.com','hostname2.iml2.com', 'hostname2.iml3.com',
-          'hostname3.iml2.com', 'hostname3.iml3.com',
-          'hostname4.iml2.com', 'hostname4.iml3.com', 'hostname5.iml2.com',
-          'hostname5.iml3.com', 'hostname6.iml2.com', 'hostname6.iml3.com',
-          'hostname7.iml2.com', 'hostname7.iml3.com'],
+          'hostname1.iml2.com',
+          'hostname1.iml3.com',
+          'hostname2.iml2.com',
+          'hostname2.iml3.com',
+          'hostname3.iml2.com',
+          'hostname3.iml3.com',
+          'hostname4.iml2.com',
+          'hostname4.iml3.com',
+          'hostname5.iml2.com',
+          'hostname5.iml3.com',
+          'hostname6.iml2.com',
+          'hostname6.iml3.com',
+          'hostname7.iml2.com',
+          'hostname7.iml3.com'
+        ],
         sections: ['hostname1..7.iml2..3.com'],
-        expansionHash : {
-          'hostname1.iml2.com' : 1,
-          'hostname1.iml3.com' : 1,
-          'hostname2.iml2.com' : 1,
-          'hostname2.iml3.com' : 1,
-          'hostname3.iml2.com' : 1,
-          'hostname3.iml3.com' : 1,
-          'hostname4.iml2.com' : 1,
-          'hostname4.iml3.com' : 1,
-          'hostname5.iml2.com' : 1,
-          'hostname5.iml3.com' : 1,
-          'hostname6.iml2.com' : 1,
-          'hostname6.iml3.com' : 1,
-          'hostname7.iml2.com' : 1,
-          'hostname7.iml3.com' : 1
+        expansionHash: {
+          'hostname1.iml2.com': 1,
+          'hostname1.iml3.com': 1,
+          'hostname2.iml2.com': 1,
+          'hostname2.iml3.com': 1,
+          'hostname3.iml2.com': 1,
+          'hostname3.iml3.com': 1,
+          'hostname4.iml2.com': 1,
+          'hostname4.iml3.com': 1,
+          'hostname5.iml2.com': 1,
+          'hostname5.iml3.com': 1,
+          'hostname6.iml2.com': 1,
+          'hostname6.iml3.com': 1,
+          'hostname7.iml2.com': 1,
+          'hostname7.iml3.com': 1
         }
       }
     },
@@ -246,20 +275,27 @@ describe('pdsh parser', function () {
       expression: 'hostname[1,2-3].iml[2,3].com,hostname[1,2,3].iml[2,4].com',
       expanded: {
         expansion: [
-          'hostname1.iml2.com', 'hostname1.iml3.com', 'hostname1.iml4.com',
-          'hostname2.iml2.com', 'hostname2.iml3.com', 'hostname2.iml4.com',
-          'hostname3.iml2.com', 'hostname3.iml3.com', 'hostname3.iml4.com'],
+          'hostname1.iml2.com',
+          'hostname1.iml3.com',
+          'hostname1.iml4.com',
+          'hostname2.iml2.com',
+          'hostname2.iml3.com',
+          'hostname2.iml4.com',
+          'hostname3.iml2.com',
+          'hostname3.iml3.com',
+          'hostname3.iml4.com'
+        ],
         sections: ['hostname1..3.iml2..4.com'],
-        expansionHash : {
-          'hostname1.iml2.com' : 1,
-          'hostname1.iml3.com' : 1,
-          'hostname1.iml4.com' : 1,
-          'hostname2.iml2.com' : 1,
-          'hostname2.iml3.com' : 1,
-          'hostname2.iml4.com' : 1,
-          'hostname3.iml2.com' : 1,
-          'hostname3.iml3.com' : 1,
-          'hostname3.iml4.com' : 1
+        expansionHash: {
+          'hostname1.iml2.com': 1,
+          'hostname1.iml3.com': 1,
+          'hostname1.iml4.com': 1,
+          'hostname2.iml2.com': 1,
+          'hostname2.iml3.com': 1,
+          'hostname2.iml4.com': 1,
+          'hostname3.iml2.com': 1,
+          'hostname3.iml3.com': 1,
+          'hostname3.iml4.com': 1
         }
       }
     },
@@ -268,22 +304,29 @@ describe('pdsh parser', function () {
       expression: 'hostname[1,2-3].iml[2,3].com,hostname[4,5].iml[3,4].com',
       expanded: {
         expansion: [
-          'hostname1.iml2.com', 'hostname1.iml3.com','hostname2.iml2.com',
-          'hostname2.iml3.com','hostname3.iml2.com', 'hostname3.iml3.com',
-          'hostname4.iml3.com', 'hostname4.iml4.com', 'hostname5.iml3.com',
-          'hostname5.iml4.com'],
+          'hostname1.iml2.com',
+          'hostname1.iml3.com',
+          'hostname2.iml2.com',
+          'hostname2.iml3.com',
+          'hostname3.iml2.com',
+          'hostname3.iml3.com',
+          'hostname4.iml3.com',
+          'hostname4.iml4.com',
+          'hostname5.iml3.com',
+          'hostname5.iml4.com'
+        ],
         sections: ['hostname1..3.iml2..3.com', 'hostname4..5.iml3..4.com'],
-        expansionHash : {
-          'hostname1.iml2.com' : 1,
-          'hostname1.iml3.com' : 1,
-          'hostname2.iml2.com' : 1,
-          'hostname2.iml3.com' : 1,
-          'hostname3.iml2.com' : 1,
-          'hostname3.iml3.com' : 1,
-          'hostname4.iml3.com' : 1,
-          'hostname4.iml4.com' : 1,
-          'hostname5.iml3.com' : 1,
-          'hostname5.iml4.com' : 1
+        expansionHash: {
+          'hostname1.iml2.com': 1,
+          'hostname1.iml3.com': 1,
+          'hostname2.iml2.com': 1,
+          'hostname2.iml3.com': 1,
+          'hostname3.iml2.com': 1,
+          'hostname3.iml3.com': 1,
+          'hostname4.iml3.com': 1,
+          'hostname4.iml4.com': 1,
+          'hostname5.iml3.com': 1,
+          'hostname5.iml4.com': 1
         }
       }
     },
@@ -299,29 +342,37 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[1,2-3].iml[2,3].com,hostname[3,4,5].iml[3,4].com',
       expanded: {
-        errors: [ 'Expression hostname[3,4,5].iml[3,4].com matches previous expansion of hostname3.iml3.com generated' +
-          ' by hostname[1,2-3].iml[2,3].com' ]
+        errors: [
+          'Expression hostname[3,4,5].iml[3,4].com matches previous expansion of hostname3.iml3.com generated' +
+            ' by hostname[1,2-3].iml[2,3].com'
+        ]
       }
     },
     // Duplicate without using a range
     {
       expression: 'hostname4.iml.com,hostname4.iml.com',
       expanded: {
-        errors : [ 'Expression  matches previous expansion of hostname4.iml.com generated by hostname4.iml.com' ]
+        errors: [
+          'Expression  matches previous expansion of hostname4.iml.com generated by hostname4.iml.com'
+        ]
       }
     },
     // Single item with single range and additional characters after range
     {
       expression: 'hostname[0-3]-eth0.iml.com',
       expanded: {
-        expansion: ['hostname0-eth0.iml.com', 'hostname1-eth0.iml.com',
-          'hostname2-eth0.iml.com', 'hostname3-eth0.iml.com'],
+        expansion: [
+          'hostname0-eth0.iml.com',
+          'hostname1-eth0.iml.com',
+          'hostname2-eth0.iml.com',
+          'hostname3-eth0.iml.com'
+        ],
         sections: ['hostname0..3-eth0.iml.com'],
-        expansionHash : {
-          'hostname0-eth0.iml.com' : 1,
-          'hostname1-eth0.iml.com' : 1,
-          'hostname2-eth0.iml.com' : 1,
-          'hostname3-eth0.iml.com' : 1
+        expansionHash: {
+          'hostname0-eth0.iml.com': 1,
+          'hostname1-eth0.iml.com': 1,
+          'hostname2-eth0.iml.com': 1,
+          'hostname3-eth0.iml.com': 1
         }
       }
     },
@@ -329,18 +380,26 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[1,2]-[3-4]-[5,6].iml.com',
       expanded: {
-        expansion: ['hostname1-3-5.iml.com', 'hostname1-3-6.iml.com', 'hostname1-4-5.iml.com', 'hostname1-4-6.iml.com',
-          'hostname2-3-5.iml.com', 'hostname2-3-6.iml.com', 'hostname2-4-5.iml.com', 'hostname2-4-6.iml.com'],
+        expansion: [
+          'hostname1-3-5.iml.com',
+          'hostname1-3-6.iml.com',
+          'hostname1-4-5.iml.com',
+          'hostname1-4-6.iml.com',
+          'hostname2-3-5.iml.com',
+          'hostname2-3-6.iml.com',
+          'hostname2-4-5.iml.com',
+          'hostname2-4-6.iml.com'
+        ],
         sections: ['hostname1..2-3..4-5..6.iml.com'],
-        expansionHash : {
-          'hostname1-3-5.iml.com' : 1,
-          'hostname1-3-6.iml.com' : 1,
-          'hostname1-4-5.iml.com' : 1,
-          'hostname1-4-6.iml.com' : 1,
-          'hostname2-3-5.iml.com' : 1,
-          'hostname2-3-6.iml.com' : 1,
-          'hostname2-4-5.iml.com' : 1,
-          'hostname2-4-6.iml.com' : 1
+        expansionHash: {
+          'hostname1-3-5.iml.com': 1,
+          'hostname1-3-6.iml.com': 1,
+          'hostname1-4-5.iml.com': 1,
+          'hostname1-4-6.iml.com': 1,
+          'hostname2-3-5.iml.com': 1,
+          'hostname2-3-6.iml.com': 1,
+          'hostname2-4-5.iml.com': 1,
+          'hostname2-4-6.iml.com': 1
         }
       }
     },
@@ -348,13 +407,18 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[1,2][3,4].iml.com',
       expanded: {
-        expansion: ['hostname13.iml.com', 'hostname14.iml.com', 'hostname23.iml.com', 'hostname24.iml.com'],
+        expansion: [
+          'hostname13.iml.com',
+          'hostname14.iml.com',
+          'hostname23.iml.com',
+          'hostname24.iml.com'
+        ],
         sections: ['hostname1..23..4.iml.com'],
-        expansionHash : {
-          'hostname13.iml.com' : 1,
-          'hostname14.iml.com' : 1,
-          'hostname23.iml.com' : 1,
-          'hostname24.iml.com' : 1
+        expansionHash: {
+          'hostname13.iml.com': 1,
+          'hostname14.iml.com': 1,
+          'hostname23.iml.com': 1,
+          'hostname24.iml.com': 1
         }
       }
     },
@@ -362,12 +426,16 @@ describe('pdsh parser', function () {
     {
       expression: 'test[000-002].localdomain',
       expanded: {
-        expansion: ['test000.localdomain', 'test001.localdomain', 'test002.localdomain'],
+        expansion: [
+          'test000.localdomain',
+          'test001.localdomain',
+          'test002.localdomain'
+        ],
         sections: ['test000..002.localdomain'],
-        expansionHash : {
-          'test000.localdomain' : 1,
-          'test001.localdomain' : 1,
-          'test002.localdomain' : 1
+        expansionHash: {
+          'test000.localdomain': 1,
+          'test001.localdomain': 1,
+          'test002.localdomain': 1
         }
       }
     },
@@ -376,23 +444,37 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[2,6,7].iml.com,hostname[10,11-12,2-3,5].iml.com, hostname[15-17].iml.com',
       expanded: {
-        expansion: [ 'hostname2.iml.com', 'hostname3.iml.com', 'hostname5.iml.com', 'hostname6.iml.com',
-          'hostname7.iml.com', 'hostname10.iml.com', 'hostname11.iml.com', 'hostname12.iml.com',
-          'hostname15.iml.com', 'hostname16.iml.com', 'hostname17.iml.com' ],
-        sections: [ 'hostname2..3.iml.com', 'hostname5..7.iml.com', 'hostname10..12.iml.com',
-          'hostname15..17.iml.com' ],
-        expansionHash : {
-          'hostname2.iml.com' : 1,
-          'hostname3.iml.com' : 1,
-          'hostname5.iml.com' : 1,
-          'hostname6.iml.com' : 1,
-          'hostname7.iml.com' : 1,
-          'hostname10.iml.com' : 1,
-          'hostname11.iml.com' : 1,
-          'hostname12.iml.com' : 1,
-          'hostname15.iml.com' : 1,
-          'hostname16.iml.com' : 1,
-          'hostname17.iml.com' : 1
+        expansion: [
+          'hostname2.iml.com',
+          'hostname3.iml.com',
+          'hostname5.iml.com',
+          'hostname6.iml.com',
+          'hostname7.iml.com',
+          'hostname10.iml.com',
+          'hostname11.iml.com',
+          'hostname12.iml.com',
+          'hostname15.iml.com',
+          'hostname16.iml.com',
+          'hostname17.iml.com'
+        ],
+        sections: [
+          'hostname2..3.iml.com',
+          'hostname5..7.iml.com',
+          'hostname10..12.iml.com',
+          'hostname15..17.iml.com'
+        ],
+        expansionHash: {
+          'hostname2.iml.com': 1,
+          'hostname3.iml.com': 1,
+          'hostname5.iml.com': 1,
+          'hostname6.iml.com': 1,
+          'hostname7.iml.com': 1,
+          'hostname10.iml.com': 1,
+          'hostname11.iml.com': 1,
+          'hostname12.iml.com': 1,
+          'hostname15.iml.com': 1,
+          'hostname16.iml.com': 1,
+          'hostname17.iml.com': 1
         }
       }
     },
@@ -400,14 +482,20 @@ describe('pdsh parser', function () {
     {
       expression: 'hostname[06-10]',
       expanded: {
-        expansion: ['hostname06', 'hostname07', 'hostname08', 'hostname09', 'hostname10'],
+        expansion: [
+          'hostname06',
+          'hostname07',
+          'hostname08',
+          'hostname09',
+          'hostname10'
+        ],
         sections: ['hostname06..10'],
-        expansionHash : {
-          'hostname06' : 1,
-          'hostname07' : 1,
-          'hostname08' : 1,
-          'hostname09' : 1,
-          'hostname10' : 1
+        expansionHash: {
+          hostname06: 1,
+          hostname07: 1,
+          hostname08: 1,
+          hostname09: 1,
+          hostname10: 1
         }
       }
     },
@@ -511,12 +599,11 @@ describe('pdsh parser', function () {
     }
   ];
 
-  tests.forEach((test) => {
+  tests.forEach(test => {
     it(`should return the correct expression ${test.expression}`, () => {
       const result = parser(test.expression);
 
-      expect(result)
-        .toEqual(test.expanded);
+      expect(result).toEqual(test.expanded);
     });
   });
 });
