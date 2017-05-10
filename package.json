@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@mfl/fp": "8.0.1",
-    "@mfl/math": "6.0.0",
+    "@mfl/math": "6.0.1",
     "@mfl/obj": "6.0.1"
   }
 }
