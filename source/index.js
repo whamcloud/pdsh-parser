@@ -141,14 +141,13 @@ function processExpandedGroups(expansionGroups) {
 
   const expandedExpressions = fp.unwrap(obj.values(expansionGroups.expansion));
 
-  // If a dup was found, locate which expression it came from.
-  fp.cond(
-    [
-      math.gt.bind(null, 0),
-      fp.always(retrieveDupExpressionsAndAddErrorMessage)
-    ],
-    [fp.True, fp.always(updateExpansionCollection)]
-  )(duplicates.length)(expansionGroups, expandedExpressions, duplicates);
+  if (duplicates.length > 0)
+    retrieveDupExpressionsAndAddErrorMessage(
+      expansionGroups,
+      expandedExpressions,
+      duplicates
+    );
+  else updateExpansionCollection(expansionGroups, expandedExpressions);
 }
 
 /**
@@ -277,10 +276,7 @@ function isNotAboveCap(isValid, allExpressions) {
     isFalse(isNaN(totalEntries))
   ]);
 
-  fp.cond(
-    [passesCheck, fp.always(addErrorObject)],
-    [fp.True, fp.always(fp.noop)]
-  )()(constants.EXPRESSION_OVER_CAP);
+  if (passesCheck()) addErrorObject(constants.EXPRESSION_OVER_CAP);
 
   return notAboveCap;
 }
@@ -439,15 +435,14 @@ function updateExpressionBasedOnPrevAndCurrentRanges(
       null,
       updatedExpression
     );
-    const isPrevRange = fp.flow(fp.eq(prevRanges[i]), fp.always);
 
-    updatedExpression = fp.cond(
-      [
-        fp.flow(isPrevRange(curRanges[i]), fp.not),
-        fp.always(expandExpressionUsingPrevAndCurrentRanges)
-      ],
-      [fp.True, fp.always(updatedExpressionFromPrevRange)]
-    )()(prevRanges[i], curRanges[i], updatedExpression);
+    updatedExpression = prevRanges[i] !== curRanges[i]
+      ? expandExpressionUsingPrevAndCurrentRanges(
+          prevRanges[i],
+          curRanges[i],
+          updatedExpression
+        )
+      : updatedExpressionFromPrevRange(prevRanges[i]);
   }
 
   // combine the sections into a new string
@@ -646,12 +641,10 @@ function replaceTokenWithText(source: string, token: string) {
 function formatString(hostname, ranges, id) {
   const curArrayId = typeof id === 'number' ? id : 0;
   const serverList = [];
-  const isGreaterThan0 = fp.flow(math.gt.bind(null, 0), fp.always);
 
-  fp.cond(
-    [isGreaterThan0(ranges.length), fp.always(formatCurrentRange)],
-    [fp.True, fp.always(addHostnameToServerListAndCache)]
-  )()(serverList, hostname, ranges, curArrayId);
+  if (ranges.length > 0)
+    formatCurrentRange(serverList, hostname, ranges, curArrayId);
+  else addHostnameToServerListAndCache(serverList, hostname);
 
   return serverList;
 }
@@ -681,30 +674,9 @@ function formatCurrentRange(serverList, hostname, ranges, curArrayId) {
 function computeString(serverList, hostname, ranges, curArrayId, part) {
   const updatedHostName = replaceTokenWithText(hostname, part);
 
-  /**
-   * A predicate used to determine if more ranges should be processed or if an item needs to be added.
-   * @param {Array} ranges
-   * @param {Number} curArrayId
-   * @returns {Function}
-   */
-  function predicate(ranges, curArrayId) {
-    return function innerPredicate() {
-      return moreRangesAvailable(ranges, curArrayId);
-    };
-  }
-
-  fp.cond(
-    [predicate(ranges, curArrayId), fp.always(processMoreRanges)],
-    [fp.True, fp.always(fp.noop)]
-  )()(updatedHostName, ranges, curArrayId, serverList);
-
-  fp.cond(
-    [
-      fp.flow(predicate(ranges, curArrayId), fp.not),
-      fp.always(addHostnameToServerListAndCache)
-    ],
-    [fp.True, fp.always(fp.noop)]
-  )()(serverList, updatedHostName);
+  if (moreRangesAvailable(ranges, curArrayId))
+    processMoreRanges(updatedHostName, ranges, curArrayId, serverList);
+  else addHostnameToServerListAndCache(serverList, updatedHostName);
 }
 
 function addHostnameToServerListAndCache(serverList, hostname) {
@@ -1011,11 +983,14 @@ function splitExpressions(expression, isInsideBraces) {
   // remove all white space
   expression = expression.replace(/ /g, '');
 
-  const isNegative1 = fp.flow(fp.eq(-1), fp.always);
-  return fp.cond(
-    [isNegative1(curLoc), fp.always(addExpressionToExpressionList)],
-    [fp.True, fp.always(lookForMoreExpressionsToSplit)]
-  )()(expressions, expression, curLoc, isInsideBraces);
+  return curLoc === -1
+    ? addExpressionToExpressionList(expressions, expression)
+    : lookForMoreExpressionsToSplit(
+        expressions,
+        expression,
+        curLoc,
+        isInsideBraces
+      );
 }
 
 /**
@@ -1070,10 +1045,7 @@ function lookForMoreExpressionsToSplit(
     isGreaterThan0(expression.length)
   ]);
 
-  fp.cond(
-    [hasNoSeparation, fp.always(addExpressionToExpressionList)],
-    [fp.True, fp.always(fp.noop)]
-  )()(expressions, expression);
+  if (hasNoSeparation()) addExpressionToExpressionList(expressions, expression);
 
   return expressions;
 }
@@ -1143,10 +1115,8 @@ function hasBrace(fn: (x: string) => number) {
  */
 function tokenize(expression) {
   const tokens = [];
-  fp.cond(
-    [isNotEmpty, fp.always(proceedWithTokenize)],
-    [fp.True, fp.always(fp.noop)]
-  )(expression)(tokens, expression);
+
+  if (isNotEmpty(expression)) proceedWithTokenize(tokens, expression);
 
   return tokens;
 }
@@ -1217,9 +1187,7 @@ function getIndexArrayOfBraces(expression, brace) {
  * @returns {Function}
  */
 function sum(fn) {
-  return function innerSum(prev, current) {
-    return prev + fn(current);
-  };
+  return (prev, current) => prev + fn(current);
 }
 
 /**

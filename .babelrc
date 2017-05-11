@@ -14,7 +14,9 @@
     ]
   ],
   "plugins": [
-    "transform-flow-strip-types"
+    "transform-flow-strip-types",
+    "object-values-to-object-keys",
+    "transform-object-entries"
   ],
   "sourceMaps": "inline"
 }
