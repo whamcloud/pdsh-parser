@@ -39,7 +39,7 @@
     "@mfl/jasmine-n-matchers": "2.1.1",
     "babel-eslint": "7.2.3",
     "babel-plugin-transform-flow-strip-types": "6.22.0",
-    "babel-preset-env": "1.4.0",
+    "babel-preset-env": "1.5.0",
     "babel-plugin-object-values-to-object-keys": "1.0.2",
     "babel-plugin-transform-object-entries": "1.0.0",
     "eslint": "3.19.0",
