@@ -1,6 +1,6 @@
 {
   "name": "@mfl/pdsh-parser",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "PDSH module for parsing pdsh queries",
   "main": "source/index.js",
   "scripts": {
