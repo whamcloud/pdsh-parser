@@ -7,8 +7,7 @@ import { describe, it, expect } from './jasmine';
 const range = (start: number, end: number): number[] => {
   const out = [];
 
-  for (let i = start; i < end; i++)
-    out.push(i);
+  for (let i = start; i < end; i++) out.push(i);
 
   return out;
 };
@@ -193,7 +192,8 @@ describe('pdsh parser', function() {
     // Single range per hostname in which the difference between ranges is clearly 1 so they can be combined. A
     // duplicate was also added here to verify that it is removed.
     {
-      expression: 'hostname[2,6,7].iml.com,hostname[10,11-12,2-4,5].iml.com, hostname[15-17].iml.com',
+      expression:
+        'hostname[2,6,7].iml.com,hostname[10,11-12,2-4,5].iml.com, hostname[15-17].iml.com',
       expanded: {
         expansion: [
           'hostname2.iml.com',
@@ -232,7 +232,8 @@ describe('pdsh parser', function() {
     },
     // Multiple ranges per hostname in which the difference is 1 (first item is the same) using the same range format
     {
-      expression: 'hostname[1,2-3].iml[2,3].com,hostname[3,4,5].iml[2,3].com,hostname[5-6,7].iml[2,3].com',
+      expression:
+        'hostname[1,2-3].iml[2,3].com,hostname[3,4,5].iml[2,3].com,hostname[5-6,7].iml[2,3].com',
       expanded: {
         expansion: [
           'hostname1.iml2.com',
@@ -442,7 +443,8 @@ describe('pdsh parser', function() {
     // Three items in equivalent format in which the difference between ranges is 1. These ranges can be
     // combined.
     {
-      expression: 'hostname[2,6,7].iml.com,hostname[10,11-12,2-3,5].iml.com, hostname[15-17].iml.com',
+      expression:
+        'hostname[2,6,7].iml.com,hostname[10,11-12,2-3,5].iml.com, hostname[15-17].iml.com',
       expanded: {
         expansion: [
           'hostname2.iml.com',

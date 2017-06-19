@@ -32,7 +32,8 @@ const constants = Object.freeze({
   EXPRESSION_INVALID: 'Expression is invalid',
   INDEX_OF: 'indexOf',
   LAST_INDEX_OF: 'lastIndexOf',
-  INCONSISTENT_DIGITS: 'Number of digits must be consistent across padded entries',
+  INCONSISTENT_DIGITS:
+    'Number of digits must be consistent across padded entries',
   EXPRESSION_OVER_CAP: 'The hostlist cannot contain more than 50000 entries.',
   CAP: 50000
 });
@@ -890,8 +891,7 @@ function generatePrefixedRanges(range: string[], prefix: string) {
   const end = +range[1] + 1;
   const out = [];
 
-  for (let i = start; i < end; i++)
-    out.push(i);
+  for (let i = start; i < end; i++) out.push(i);
 
   return out.map(prefixString(prefix, range[0].length));
 }
