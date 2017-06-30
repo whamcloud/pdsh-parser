@@ -2,31 +2,31 @@
 # yarn lockfile v1
 
 
-"@mfl/flow-jasmine@1.6.1":
+"@iml/flow-jasmine@1.6.1":
   version "1.6.1"
-  resolved "https://registry.yarnpkg.com/@mfl/flow-jasmine/-/flow-jasmine-1.6.1.tgz#ddf955193823af50f2180fc613e81cf7fbde2043"
+  resolved "https://registry.yarnpkg.com/@iml/flow-jasmine/-/flow-jasmine-1.6.1.tgz#ddf955193823af50f2180fc613e81cf7fbde2043"
 
-"@mfl/fp@^8.0.3":
+"@iml/fp@^8.0.3":
   version "8.0.3"
-  resolved "https://registry.yarnpkg.com/@mfl/fp/-/fp-8.0.3.tgz#6703f3b818edead4acd52c2316e3bfe2ae797117"
+  resolved "https://registry.yarnpkg.com/@iml/fp/-/fp-8.0.3.tgz#6703f3b818edead4acd52c2316e3bfe2ae797117"
   dependencies:
-    "@mfl/maybe" "3.1.0"
+    "@iml/maybe" "3.1.0"
 
-"@mfl/jasmine-n-matchers@2.1.1":
+"@iml/jasmine-n-matchers@2.1.1":
   version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@mfl/jasmine-n-matchers/-/jasmine-n-matchers-2.1.1.tgz#bf4ab1d4fff38152b1253bb9619e7e5e814926c6"
+  resolved "https://registry.yarnpkg.com/@iml/jasmine-n-matchers/-/jasmine-n-matchers-2.1.1.tgz#bf4ab1d4fff38152b1253bb9619e7e5e814926c6"
 
-"@mfl/math@6.0.1":
+"@iml/math@6.0.1":
   version "6.0.1"
-  resolved "https://registry.yarnpkg.com/@mfl/math/-/math-6.0.1.tgz#7f017be78a4de3f9531d6d0b2f081010762109d3"
+  resolved "https://registry.yarnpkg.com/@iml/math/-/math-6.0.1.tgz#7f017be78a4de3f9531d6d0b2f081010762109d3"
 
-"@mfl/maybe@3.1.0":
+"@iml/maybe@3.1.0":
   version "3.1.0"
-  resolved "https://registry.yarnpkg.com/@mfl/maybe/-/maybe-3.1.0.tgz#d20824e499a4aa3fe161f85a7355312f53357315"
+  resolved "https://registry.yarnpkg.com/@iml/maybe/-/maybe-3.1.0.tgz#d20824e499a4aa3fe161f85a7355312f53357315"
 
-"@mfl/obj@6.0.3":
+"@iml/obj@6.0.3":
   version "6.0.3"
-  resolved "https://registry.yarnpkg.com/@mfl/obj/-/obj-6.0.3.tgz#d8d1c1ea6285dd2a5c4c092eb0e5053dd7eb9283"
+  resolved "https://registry.yarnpkg.com/@iml/obj/-/obj-6.0.3.tgz#d8d1c1ea6285dd2a5c4c092eb0e5053dd7eb9283"
 
 abab@^1.0.3:
   version "1.0.3"
