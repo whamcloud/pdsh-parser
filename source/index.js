@@ -5,9 +5,9 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
 
-import * as fp from '@mfl/fp';
-import * as obj from '@mfl/obj';
-import * as math from '@mfl/math';
+import * as fp from '@iml/fp';
+import * as obj from '@iml/obj';
+import * as math from '@iml/math';
 
 let errorCollection = {
   errors: []
@@ -312,9 +312,8 @@ function getTotalEntries(allExpressions) {
  * @returns {*}
  */
 function combineSimilarExpressions(prevExpressions, curExpression) {
-  prevExpressions = typeof prevExpressions === 'string'
-    ? [prevExpressions]
-    : prevExpressions;
+  prevExpressions =
+    typeof prevExpressions === 'string' ? [prevExpressions] : prevExpressions;
 
   const updatedExpressions = prevExpressions.map(
     compareExpressions(curExpression)
@@ -421,13 +420,14 @@ function updateExpressionBasedOnPrevAndCurrentRanges(
       updatedExpression
     );
 
-    updatedExpression = prevRanges[i] !== curRanges[i]
-      ? expandExpressionUsingPrevAndCurrentRanges(
-          prevRanges[i],
-          curRanges[i],
-          updatedExpression
-        )
-      : updatedExpressionFromPrevRange(prevRanges[i]);
+    updatedExpression =
+      prevRanges[i] !== curRanges[i]
+        ? expandExpressionUsingPrevAndCurrentRanges(
+            prevRanges[i],
+            curRanges[i],
+            updatedExpression
+          )
+        : updatedExpressionFromPrevRange(prevRanges[i]);
   }
 
   // combine the sections into a new string
@@ -740,9 +740,14 @@ function sortRangeString(rangeComponent: string) {
 
   // reduce the sorted array back to a string
   let sortedRangeString = minMaxComponents.reduce((prev, current) => {
-    const rangeString = current.min === current.max
-      ? current.minPrefix + current.min
-      : current.minPrefix + current.min + '-' + current.maxPrefix + current.max;
+    const rangeString =
+      current.min === current.max
+        ? current.minPrefix + current.min
+        : current.minPrefix +
+          current.min +
+          '-' +
+          current.maxPrefix +
+          current.max;
     const separator = prev === '' ? '' : ',';
 
     return prev + separator + rangeString;
@@ -769,9 +774,8 @@ function sortRangeString(rangeComponent: string) {
  * @returns {Array}
  */
 function getMinMaxComponents(rangeComponent: string) {
-  const componentToParse = rangeComponent[0] === '['
-    ? rangeComponent.slice(1, -1)
-    : rangeComponent;
+  const componentToParse =
+    rangeComponent[0] === '[' ? rangeComponent.slice(1, -1) : rangeComponent;
   const components = componentToParse.split(',');
 
   // return an array of min/max items
