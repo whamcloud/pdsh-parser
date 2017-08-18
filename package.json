@@ -1,5 +1,5 @@
 {
-  "name": "@mfl/pdsh-parser",
+  "name": "@iml/pdsh-parser",
   "version": "1.0.5",
   "description": "PDSH module for parsing pdsh queries",
   "main": "source/index.js",
@@ -29,14 +29,14 @@
       "/test"
     ],
     "transformIgnorePatterns": [
-      "/node_modules/(?!@mfl)/"
+      "/node_modules/(?!@iml)/"
     ]
   },
-  "author": "MFL Team",
+  "author": "IML Team",
   "license": "MIT",
   "devDependencies": {
-    "@mfl/flow-jasmine": "1.6.1",
-    "@mfl/jasmine-n-matchers": "2.1.1",
+    "@iml/flow-jasmine": "1.6.1",
+    "@iml/jasmine-n-matchers": "2.1.1",
     "babel-eslint": "7.2.3",
     "babel-plugin-object-values-to-object-keys": "1.0.2",
     "babel-plugin-transform-flow-strip-types": "6.22.0",
@@ -45,7 +45,7 @@
     "eslint": "^4.0.0",
     "eslint-config-prettier": "^2.2.0",
     "eslint-plugin-flowtype": "^2.34.0",
-    "eslint-plugin-import": "2.5.0",
+    "eslint-plugin-import": "2.6.0",
     "eslint-plugin-prettier": "^2.1.2",
     "flow-bin": "^0.49.1",
     "jest": "20.0.4",
@@ -53,8 +53,8 @@
     "prettier": "^1.4.4"
   },
   "dependencies": {
-    "@mfl/fp": "^8.0.3",
-    "@mfl/math": "6.0.1",
-    "@mfl/obj": "6.0.3"
+    "@iml/fp": "^8.0.3",
+    "@iml/math": "6.0.1",
+    "@iml/obj": "6.0.3"
   }
 }
