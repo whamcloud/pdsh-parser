@@ -1,9 +1,0 @@
-.eslintignore
-.editorconfig
-.eslintrc
-.flowconfig
-.babelrc
-.gitignore
-*.log
-/test
-/coverage
