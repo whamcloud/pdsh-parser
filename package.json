@@ -1,6 +1,6 @@
 {
   "name": "@iml/pdsh-parser",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "PDSH module for parsing pdsh queries",
   "main": "source/index.js",
   "scripts": {
